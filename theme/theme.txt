@@ -14,11 +14,11 @@ terminal-border: "0"
   width = 1160
   height = 620
   item_font = "Google Sans Flex Regular 22"
-  item_color = "#a2adac"
-  selected_item_color = "#e5e1e7"
+  item_color = "#6d7876"
+  selected_item_color = "#dce8e6"
   item_height = 36
   item_padding = 12
-  item_spacing = 36
+  item_spacing = 42
   menu_pixmap_style = ""
   item_pixmap_style = "item_*.png"
   selected_item_pixmap_style = "select_*.png"

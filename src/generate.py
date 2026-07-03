@@ -108,9 +108,7 @@ def get_shell_config():
                     config["item_padding"] = padding["large"]
                     config["timeout_height"] = padding["large"]
                     
-                spacing = data.get("appearance", {}).get("spacing", {})
-                if "extraExtraLarge" in spacing:
-                    config["item_spacing"] = spacing["extraExtraLarge"]
+                config["item_spacing"] = config.get("item_height", 36) + config.get("item_padding", 12) // 2
         except:
             pass
             
@@ -287,25 +285,34 @@ def create_composite_bg(scheme_colors, scheme_meta, shell_cfg):
 
 def generate_9slice(name, bg_color_hex, shell_cfg, border_color_hex=None, radius=None, alpha_override=None, exact_height=None, max_height=None):
     if exact_height is not None:
-        r = exact_height // 2
-        c_size = max(r, 1)
+        h = exact_height
     else:
-        if radius is None:
-            r = int(shell_cfg["rounding_item"] * shell_cfg["rounding_scale"])
-        else:
-            r = radius
-            
         if max_height is not None:
-            r = min(r, max_height // 2)
-            c_size = max(r, 1)
+            h = max_height
         else:
-            c_size = max(r + 2, 8)
+            h = 42
+            
+    if radius is None:
+        r = int(shell_cfg.get("rounding_item", 12) * shell_cfg.get("rounding_scale", 1.0))
+    else:
+        r = radius
+        
+    r = min(r, h // 2)
+            
+    c_w = max(r, 2)
     
-    size = c_size * 3
+    # Crucial Fix: Make the middle slice (e) as large as possible to contain the whole chevron (if used).
+    # This ensures GRUB scales the middle uniformly.
+    # We MUST ensure c_h * 2 < h so the middle slice has at least 1px height.
+    c_h = r + 2
+    if c_h * 2 >= h:
+        c_h = max((h - 1) // 2, 1)
     
-    img = QImage(size, size, QImage.Format.Format_ARGB32)
+    mid_w = 20
+    w = c_w * 2 + mid_w
+    
+    img = QImage(w, h, QImage.Format.Format_ARGB32)
     img.fill(Qt.GlobalColor.transparent)
-    
     painter = QPainter(img)
     painter.setRenderHint(QPainter.RenderHint.Antialiasing)
     
@@ -317,29 +324,32 @@ def generate_9slice(name, bg_color_hex, shell_cfg, border_color_hex=None, radius
     painter.setBrush(bg_color)
     
     if border_color_hex:
-        painter.setPen(QPen(QColor(border_color_hex), 1))
+        border_color = QColor(border_color_hex)
+        border_color.setAlphaF(0.8)
+        painter.setPen(QPen(border_color, 2))
     else:
         painter.setPen(Qt.PenStyle.NoPen)
         
-    margin = 1 if border_color_hex else 0
-    painter.drawRoundedRect(QRectF(margin, margin, size-2*margin, size-2*margin), r, r)
+    painter.drawRoundedRect(QRectF(0, 0, w, h), r, r)
+        
     painter.end()
     
     parts = {
-        "nw": (0, 0, c_size, c_size), 
-        "n":  (c_size, 0, c_size, c_size), 
-        "ne": (size-c_size, 0, c_size, c_size),
-        "w":  (0, c_size, c_size, c_size), 
-        "c":  (c_size, c_size, c_size, c_size), 
-        "e":  (size-c_size, c_size, c_size, c_size),
-        "sw": (0, size-c_size, c_size, c_size),
-        "s":  (c_size, size-c_size, c_size, c_size),
-        "se": (size-c_size, size-c_size, c_size, c_size)
+        "nw": (0, 0, c_w, c_h), 
+        "n":  (c_w, 0, mid_w, c_h), 
+        "ne": (w - c_w, 0, c_w, c_h),
+        "w":  (0, c_h, c_w, h - 2 * c_h), 
+        "c":  (c_w, c_h, mid_w, h - 2 * c_h), 
+        "e":  (w - c_w, c_h, c_w, h - 2 * c_h),
+        "sw": (0, h - c_h, c_w, c_h),
+        "s":  (c_w, h - c_h, mid_w, c_h),
+        "se": (w - c_w, h - c_h, c_w, c_h)
     }
     
-    for part, (x, y, w, h) in parts.items():
-        sub = img.copy(x, y, w, h)
-        sub.save(f"../theme/{name}_{part}.png")
+    for suffix, rect in parts.items():
+        comp_path = f"../theme/{name}_{suffix}.png"
+        part_img = img.copy(rect[0], rect[1], rect[2], rect[3])
+        part_img.save(comp_path)
 
 def save_image():
     try:
@@ -353,8 +363,13 @@ def save_image():
             img.save(out_path)
             print(f"Saved {out_path}")
             
-            generate_9slice("item", scheme_colors.get("surfaceContainerHigh", "#192120"), shell_cfg, max_height=shell_cfg["item_height"])
-            generate_9slice("select", scheme_colors.get("surfaceContainerHighest", "#1d2827"), shell_cfg, max_height=shell_cfg["item_height"])
+            grub_rendered_height = max(30 + 2 * shell_cfg.get("item_padding", 12), shell_cfg.get("item_height", 36))
+            
+            generate_9slice("item", scheme_colors.get("surfaceContainerHigh", "#192120"), shell_cfg, 
+                            exact_height=grub_rendered_height)
+                            
+            generate_9slice("select", scheme_colors.get("surfaceContainerHighest", "#1d2827"), shell_cfg, 
+                            exact_height=grub_rendered_height)
             generate_9slice("timeout_bg", scheme_colors.get("surfaceContainerHigh", "#192120"), shell_cfg, exact_height=shell_cfg["timeout_height"], alpha_override=1.0)
             generate_9slice("timeout_hl", scheme_colors.get("primary", "#9bd0cc"), shell_cfg, exact_height=shell_cfg["timeout_height"], alpha_override=1.0)
             print("Saved item and select 9-slice boxes")
