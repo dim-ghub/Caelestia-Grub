@@ -1,6 +1,6 @@
 # Caelestia GRUB Theme
 
-A dynamic, pill-rounded GRUB2 theme built for Caelestia. It automatically syncs its layout, colors, and 9-slice UI elements with your current Caelestia tokens, scheme, and wallpaper.
+A dynamic, GRUB2 theme built for Caelestia. It automatically syncs its layout, colors, and 9-slice UI elements with your current Caelestia tokens, scheme, and wallpaper.
 
 ![Preview](preview.png)
 
