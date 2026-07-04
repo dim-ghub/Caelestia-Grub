@@ -1,7 +1,7 @@
 # GRUB2 Theme - Caelestia Nexus
 title-text: ""
 desktop-image: "background.png"
-terminal-font: "Google Sans Flex Regular 22"
+terminal-font: "Roboto Mono Regular 22"
 terminal-left: "20%"
 terminal-top: "20%"
 terminal-width: "60%"
