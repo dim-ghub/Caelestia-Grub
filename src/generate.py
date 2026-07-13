@@ -188,6 +188,19 @@ from PIL import Image, ImageFilter, ImageOps, ImageEnhance
 
 def create_composite_bg(scheme_colors, scheme_meta, shell_cfg):
     wp_path = get_active_wallpaper()
+    
+    if wp_path.lower().endswith(('.mp4', '.mkv', '.webm', '.avi', '.gif', '.mov')):
+        import tempfile
+        import subprocess
+        tmp_frame = os.path.join(tempfile.gettempdir(), 'caelestia_grub_frame.png')
+        subprocess.run(
+            ["ffmpeg", "-i", wp_path, "-vframes", "1", "-q:v", "2", tmp_frame, "-y"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+        if os.path.exists(tmp_frame):
+            wp_path = tmp_frame
+
     sharp_path = os.path.abspath("../theme/sharp.png")
     blur_path = os.path.abspath("../theme/blur.png")
     comp_path = os.path.abspath("../theme/composite_bg.png")
