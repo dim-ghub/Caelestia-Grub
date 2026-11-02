@@ -11,7 +11,6 @@ if [ -z "${SUDO_USER:-}" ]; then
   exit 1
 fi
 
-# Fallback prefix if not supplied by pkgit
 PREFIX="${PREFIX:-/usr/local}"
 
 REAL_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)

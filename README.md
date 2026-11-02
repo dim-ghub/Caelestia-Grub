@@ -67,13 +67,3 @@ sudo bash scripts/uninstall.sh
 ```
 
 The uninstaller removes the installed theme, local generated files, deployment helper, sudoers rule, and Caelestia sync hooks. It disables this theme's `GRUB_THEME` setting and regenerates the GRUB configuration.
-
-<!--
-## Installation with pkgit
-
-Temporarily disabled while this installation method is reviewed.
-
-```bash
-pkgit -i https://github.com/Coastburgh/Adaptive-Caelestia-Grub
-```
--->
